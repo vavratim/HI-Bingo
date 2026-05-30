@@ -259,7 +259,6 @@ body { display: flex; flex-direction: column; height: 100dvh; padding-top: max(v
 </div>
 <button class="btn btn-scan" onclick="document.getElementById('fileInput').click()">📷 Scan breakroom board — AI reads new numbers</button>
 <input type="file" id="fileInput" accept="image/*" onchange="scanPhoto(event,'board')">
-<input type="file" id="cardPhotoInput" accept="image/*" onchange="scanPhoto(event,'card')">
 <div class="scan-result" id="scanResult"></div>
 
 <!-- SCAN OVERLAY -->
@@ -272,7 +271,9 @@ body { display: flex; flex-direction: column; height: 100dvh; padding-top: max(v
   <div class="modal">
     <h2>New Bingo Card</h2>
     <p>Enter your card numbers manually, or photograph your card and let AI read it.</p>
-    <button class="modal-scan-btn" onclick="document.getElementById('cardPhotoInput').click()">📷 Scan card photo — AI fills the grid</button>
+    <button class="modal-scan-btn" id="cardScanBtn" onclick="triggerCardScan()">📷 Scan card photo — AI fills the grid</button>
+    <input type="file" id="cardPhotoInput" accept="image/*" capture="environment" style="display:none">
+    <div id="modalScanResult" style="font-size:11px;min-height:16px;margin:-4px 0 8px;text-align:center;"></div>
     <div class="modal-sep"><span>or enter manually</span></div>
     <div class="modal-num-label">Card # (optional)</div>
     <input class="num-in" type="text" id="newCardNum" placeholder="e.g. 127422" inputmode="numeric" style="width:100%;margin-bottom:12px;height:36px;font-size:14px;">
@@ -553,7 +554,20 @@ const COL_RANGES = [[1,15],[16,30],[31,45],[46,60],[61,75]];
 function openNewCard() {
   buildEntryGrid();
   document.getElementById('newCardNum').value='';
+  document.getElementById('modalScanResult').textContent='';
+  document.getElementById('modalScanResult').style.color='';
+  // Wire up file input fresh each time to avoid iOS caching issues
+  const inp = document.getElementById('cardPhotoInput');
+  inp.value='';
+  inp.onchange = (e) => scanPhoto(e, 'card');
   document.getElementById('newCardModal').classList.add('show');
+}
+
+function triggerCardScan() {
+  const inp = document.getElementById('cardPhotoInput');
+  inp.value = '';
+  inp.onchange = (e) => scanPhoto(e, 'card');
+  inp.click();
 }
 
 function closeNewCard() {
@@ -647,8 +661,9 @@ async function scanPhoto(evt, mode) {
       if(!parsed.rows){throw new Error('bad response');}
       buildEntryGrid(parsed.rows);
       if(parsed.cardNum) document.getElementById('newCardNum').value=parsed.cardNum;
-      document.getElementById('scanResult').className='scan-result ok';
-      document.getElementById('scanResult').textContent='Card scanned — review the grid and tap Save Card.';
+      const msr = document.getElementById('modalScanResult');
+      msr.textContent='Card scanned — review and tap Save Card.';
+      msr.style.color='var(--green)';
     } else {
       const nums=(parsed.numbers||[]).filter(n=>Number.isInteger(n)&&n>=1&&n<=75&&!called.has(n));
       if(nums.length===0){
@@ -664,8 +679,14 @@ async function scanPhoto(evt, mode) {
     }
   } catch(e){
     document.getElementById('scanOverlay').classList.remove('show');
-    document.getElementById('scanResult').className='scan-result err';
-    document.getElementById('scanResult').textContent='Scan failed — try again or enter manually.';
+    if(mode==='card'){
+      const msr=document.getElementById('modalScanResult');
+      msr.textContent='Scan failed — try again or enter manually.';
+      msr.style.color='var(--red)';
+    } else {
+      document.getElementById('scanResult').className='scan-result err';
+      document.getElementById('scanResult').textContent='Scan failed — try again or enter manually.';
+    }
   }
 }
 
