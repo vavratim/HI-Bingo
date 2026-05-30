@@ -515,7 +515,6 @@ function closeReset() { document.getElementById('resetModal').classList.remove('
 function doReset() {
   called.clear(); order=[]; wonSet.clear();
   document.getElementById('winBanner').classList.remove('show');
-  document.getElementById('scanResult').className='scan-result';
   closeReset(); render(); toast('Numbers cleared — card kept');
 }
 
@@ -583,7 +582,6 @@ function saveNewCard() {
   cardNum=document.getElementById('newCardNum').value.trim()||'Custom';
   called.clear();order=[];wonSet.clear();
   document.getElementById('winBanner').classList.remove('show');
-  document.getElementById('scanResult').className='scan-result';
   closeNewCard();render();toast('New card saved!');
 }
 
@@ -593,6 +591,6 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 render();
 </script>
-<div style="text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.15);padding-bottom:2px;flex-shrink:0;">v1.6</div>
+<div style="text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.15);padding-bottom:2px;flex-shrink:0;">v1.7</div>
 </body>
 </html>
