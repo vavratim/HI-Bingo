@@ -630,12 +630,30 @@ function saveNewCard() {
 async function scanPhoto(evt, mode) {
   const file=evt.target.files[0];if(!file)return;
   evt.target.value='';
-  document.getElementById('scanResult').className='scan-result';
+
+  function showErr(msg) {
+    document.getElementById('scanOverlay').classList.remove('show');
+    if(mode==='card'){
+      const msr=document.getElementById('modalScanResult');
+      msr.textContent=msg; msr.style.color='var(--red)';
+    } else {
+      const sr=document.getElementById('scanResult');
+      sr.className='scan-result err'; sr.textContent=msg;
+    }
+  }
+
+  if(mode!=='card'){
+    document.getElementById('scanResult').className='scan-result';
+  } else {
+    const msr=document.getElementById('modalScanResult');
+    msr.textContent='Scanning…'; msr.style.color='var(--text-dim)';
+  }
   document.getElementById('scanMsg').textContent=mode==='card'?'AI reading your card…':'AI scanning board…';
   document.getElementById('scanOverlay').classList.add('show');
 
   try {
     const b64=await toB64(file);
+    const mtype=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
     let prompt;
     if(mode==='card'){
       prompt=`This is a photo of a physical BINGO card. Extract all 24 numbers from the card (exclude the FREE center square). The card has 5 columns: B(1-15), I(16-30), N(31-45), G(46-60), O(61-75). Return ONLY valid JSON: {"cardNum":"the serial number printed on the card if visible or empty string","rows":[[B,I,N,G,O],[B,I,N,G,O],[B,I,0,G,O],[B,I,N,G,O],[B,I,N,G,O]]} where 0 = FREE center. No markdown, no explanation.`;
@@ -644,24 +662,55 @@ async function scanPhoto(evt, mode) {
       prompt=`This image shows a BINGO number board or calendar. Extract every bingo number visible (integers 1–75). Numbers already recorded: ${already}. Return ONLY valid JSON: {"numbers":[n,n,...]} containing ONLY numbers NOT already recorded. Return {"numbers":[]} if none are new. No markdown, no explanation.`;
     }
 
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:[
-        {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
-        {type:'text',text:prompt}
-      ]}]})
-    });
-    const data=await resp.json();
-    const raw=data.content?.map(b=>b.text||'').join('')||'';
-    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    let resp, data;
+    try {
+      resp = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:500,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:mtype,data:b64}},
+            {type:'text',text:prompt}
+          ]}]
+        })
+      });
+    } catch(netErr) {
+      showErr('Network error — are you online? ('+netErr.message+')');
+      return;
+    }
+
+    try {
+      data = await resp.json();
+    } catch(parseErr) {
+      showErr('Bad response from server (HTTP '+resp.status+')');
+      return;
+    }
+
+    if(data.error) {
+      showErr('API error: '+data.error.message);
+      return;
+    }
+
+    const raw=(data.content||[]).map(b=>b.text||'').join('').trim();
+    if(!raw){ showErr('Empty response from AI — try again.'); return; }
+
+    let parsed;
+    try {
+      parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    } catch(jsonErr) {
+      showErr('Could not parse AI response — try again.');
+      return;
+    }
+
     document.getElementById('scanOverlay').classList.remove('show');
 
     if(mode==='card'){
-      // Prefill the entry grid with scanned values
-      if(!parsed.rows){throw new Error('bad response');}
+      if(!parsed.rows){ showErr('AI could not read the card — try a clearer photo.'); return; }
       buildEntryGrid(parsed.rows);
       if(parsed.cardNum) document.getElementById('newCardNum').value=parsed.cardNum;
-      const msr = document.getElementById('modalScanResult');
+      const msr=document.getElementById('modalScanResult');
       msr.textContent='Card scanned — review and tap Save Card.';
       msr.style.color='var(--green)';
     } else {
@@ -678,15 +727,7 @@ async function scanPhoto(evt, mode) {
       }
     }
   } catch(e){
-    document.getElementById('scanOverlay').classList.remove('show');
-    if(mode==='card'){
-      const msr=document.getElementById('modalScanResult');
-      msr.textContent='Scan failed — try again or enter manually.';
-      msr.style.color='var(--red)';
-    } else {
-      document.getElementById('scanResult').className='scan-result err';
-      document.getElementById('scanResult').textContent='Scan failed — try again or enter manually.';
-    }
+    showErr('Unexpected error: '+e.message);
   }
 }
 
