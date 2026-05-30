@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HI Bingo">
+<title>Harvard Integrations Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0d1b2a;
+  --navy2: #16293d;
+  --navy3: #1e3a52;
+  --blue: #1a6fa8;
+  --blue-bright: #2196d3;
+  --gold: #f0a500;
+  --green: #22c55e;
+  --red: #ef4444;
+  --text: #e8f0f8;
+  --text-dim: #7a96b0;
+  --text-muted: #4a6070;
+  --surface: rgba(255,255,255,0.05);
+  --surface2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--navy); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; }
+body { display: flex; flex-direction: column; height: 100dvh; padding-top: max(var(--safe-top), 8px); padding-bottom: max(var(--safe-bottom), 8px); padding-left: 10px; padding-right: 10px; gap: 6px; }
+
+.hdr { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.hdr-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--gold); line-height: 1; }
+.hdr-sub { font-size: 10px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
+.hdr-right { display: flex; align-items: center; gap: 8px; }
+.card-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); text-align: right; }
+
+.menu-btn { height: 32px; width: 36px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--text-dim); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
+.menu-btn:active { transform: scale(0.92); }
+/* POPUP MENU */
+.popup-overlay { display: none; position: fixed; inset: 0; z-index: 500; }
+.popup-overlay.show { display: block; }
+.popup-menu { position: absolute; top: calc(max(var(--safe-top), 8px) + 38px); right: 10px; background: var(--navy2); border: 0.5px solid var(--border2); border-radius: var(--radius); min-width: 210px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.popup-item { display: flex; align-items: center; gap: 12px; padding: 13px 16px; font-size: 14px; color: var(--text); cursor: pointer; border-bottom: 0.5px solid var(--border); }
+.popup-item:last-child { border-bottom: none; }
+.popup-item:active { background: var(--surface2); }
+.popup-item-icon { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
+.popup-item.danger { color: #ef9494; }
+/* REMOVE NUMBERS SHEET */
+.remove-sheet { background: var(--navy2); border: 0.5px solid var(--border2); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 420px; padding: 16px 14px 20px; }
+.remove-sheet h3 { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--text); margin-bottom: 4px; }
+.remove-sheet p { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; }
+.remove-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; min-height: 36px; }
+.chip { font-family: 'DM Mono', monospace; font-size: 13px; padding: 6px 12px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; }
+.chip.on-card { background: rgba(33,150,211,0.2); color: var(--blue-bright); border-color: rgba(33,150,211,0.3); }
+.chip:active { transform: scale(0.93); }
+.chip-empty { font-size: 12px; color: var(--text-muted); align-self: center; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; flex-shrink: 0; }
+.stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; text-align: center; }
+.stat-v { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--text); line-height: 1; }
+.stat-l { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+.win-bars { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; flex-shrink: 0; }
+.win-bar { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 5px 7px; }
+.win-bar-name { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.win-bar-track { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 4px 0; overflow: hidden; }
+.win-bar-fill { height: 100%; background: var(--blue-bright); border-radius: 2px; transition: width 0.4s ease; }
+.win-bar.done .win-bar-fill { background: var(--green); }
+.win-bar.done .win-bar-name { color: var(--green); }
+.win-bar-pct { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); }
+.win-bar.done .win-bar-pct { color: var(--green); }
+
+.main { display: grid; grid-template-columns: 1fr 42px; gap: 6px; flex: 1; min-height: 0; }
+.card-wrap { display: flex; flex-direction: column; min-height: 0; }
+.card-header { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--blue); border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; flex-shrink: 0; }
+.card-header span { display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: white; padding: 7px 0; }
+.card-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 1px; background: rgba(255,255,255,0.06); border: 0.5px solid var(--border2); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; flex: 1; }
+.cell { background: var(--navy2); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: clamp(13px, 4vw, 18px); font-weight: 500; color: var(--text-dim); cursor: pointer; transition: all 0.15s ease; user-select: none; position: relative; flex-direction: column; gap: 1px; }
+.cell:active { transform: scale(0.9); }
+.cell.called { background: rgba(33,150,211,0.18); color: var(--blue-bright); font-weight: 500; }
+.cell.called::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; border: 2px solid var(--blue-bright); opacity: 0.6; }
+.cell.win-lit { background: rgba(240,165,0,0.2); color: var(--gold); }
+.cell.win-lit::after { border-color: var(--gold); }
+.cell.free { background: rgba(34,197,94,0.1); color: var(--green); font-size: 9px; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; cursor: default; font-weight: 500; }
+.cell.free::after { display: none; }
+
+.sidebar { display: flex; flex-direction: column; min-height: 0; }
+.sidebar-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 4px; flex-shrink: 0; }
+.sidebar-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden; flex: 1; }
+.sb-num { font-family: 'DM Mono', monospace; font-size: 11px; text-align: center; padding: 3px 2px; border-radius: 4px; background: var(--surface); color: var(--text-muted); line-height: 1; }
+.sb-num.hit { background: rgba(33,150,211,0.2); color: var(--blue-bright); }
+
+.input-row { display: flex; gap: 6px; flex-shrink: 0; }
+.num-in { flex: 1; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Mono', monospace; font-size: 16px; text-align: center; padding: 0 8px; height: 40px; outline: none; -webkit-appearance: none; }
+.num-in:focus { border-color: var(--blue-bright); }
+.num-in::placeholder { color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; }
+.btn { height: 40px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; padding: 0 12px; }
+.btn:active { transform: scale(0.96); }
+.btn-add { background: var(--blue); border-color: var(--blue); color: white; font-weight: 500; padding: 0 14px; }
+.btn-undo { padding: 0 10px; font-size: 16px; }
+.btn-scan { width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); height: 36px; font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
+#fileInput, #cardPhotoInput { display: none; }
+
+.win-banner { display: none; background: linear-gradient(90deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05)); border: 0.5px solid rgba(34,197,94,0.4); border-radius: var(--radius-sm); padding: 6px 10px; flex-shrink: 0; }
+.win-banner.show { display: flex; align-items: center; gap: 8px; }
+.win-banner-text { flex: 1; text-align: center; }
+.win-banner-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--green); letter-spacing: 1px; }
+.win-banner-body { font-size: 10px; color: rgba(34,197,94,0.8); margin-top: 1px; }
+.win-banner-dismiss { background: none; border: none; color: rgba(34,197,94,0.6); font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+
+.scan-result { display: none; font-size: 11px; color: var(--text-muted); text-align: center; flex-shrink: 0; min-height: 14px; }
+.scan-result.ok { display: block; color: var(--green); }
+.scan-result.err { display: block; color: var(--red); }
+
+.toast { position: fixed; bottom: calc(max(var(--safe-bottom), 8px) + 60px); left: 50%; transform: translateX(-50%); background: var(--navy3); border: 0.5px solid var(--border2); color: var(--text); padding: 8px 18px; border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 100; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+/* MODAL OVERLAY */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: flex-end; justify-content: center; z-index: 300; padding-bottom: max(var(--safe-bottom), 16px); }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--navy2); border: 0.5px solid var(--border2); border-radius: var(--radius) var(--radius) var(--radius) var(--radius); width: calc(100% - 20px); max-width: 400px; padding: 18px 16px 16px; }
+.modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 4px; }
+.modal p { font-size: 11px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
+.card-entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 12px; }
+.card-entry-grid .col-label { font-family: 'Bebas Neue', sans-serif; font-size: 16px; text-align: center; letter-spacing: 1px; padding: 4px 0; }
+.col-label.lb { color: #5bc4f7; }
+.col-label.li { color: #a78bfa; }
+.col-label.ln { color: var(--gold); }
+.col-label.lg { color: #4ade80; }
+.col-label.lo { color: #f87171; }
+.card-in { width: 100%; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 5px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; text-align: center; padding: 6px 2px; outline: none; -webkit-appearance: none; }
+.card-in:focus { border-color: var(--blue-bright); }
+.card-in.free-cell { background: rgba(34,197,94,0.1); color: var(--green); border-color: rgba(34,197,94,0.3); font-size: 9px; font-family: 'DM Sans', sans-serif; }
+.card-in.err { border-color: rgba(239,68,68,0.6); }
+.modal-actions { display: flex; gap: 8px; }
+.modal-btn { flex: 1; height: 40px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+.modal-btn:active { transform: scale(0.97); }
+.modal-btn.primary { background: var(--blue); border-color: var(--blue); color: white; font-weight: 500; }
+.modal-btn.danger-btn { border-color: rgba(239,68,68,0.4); color: #ef9494; }
+.modal-sep { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.modal-sep span { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.modal-sep::before, .modal-sep::after { content: ''; flex: 1; height: 0.5px; background: var(--border2); }
+.modal-scan-btn { width: 100%; height: 36px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--text-dim); font-size: 12px; cursor: pointer; margin-bottom: 10px; }
+.modal-num-label { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
+
+/* SCAN OVERLAY */
+.scan-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 400; }
+.scan-overlay.show { display: flex; }
+.scan-box { background: var(--navy2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 24px 28px; text-align: center; max-width: 280px; }
+.spinner { width: 28px; height: 28px; border: 2.5px solid var(--border2); border-top-color: var(--blue-bright); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.scan-box p { font-size: 13px; color: var(--text-dim); }
+
+/* CONFIRM MODAL */
+.confirm-modal { background: var(--navy2); border: 0.5px solid var(--border2); border-radius: var(--radius); width: calc(100% - 40px); max-width: 320px; padding: 20px 18px; text-align: center; }
+.confirm-modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--text); letter-spacing: 1px; margin-bottom: 6px; }
+.confirm-modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">HI BINGO</div>
+    <div class="hdr-sub">Harvard Integrations</div>
+  </div>
+  <div class="hdr-right">
+    <div style="text-align:right; margin-right:6px;">
+      <div class="card-num" id="cardNumDisplay">Card #127421</div>
+      <div class="card-num" id="gameDate" style="font-size:9px; margin-top:1px;"></div>
+    </div>
+    <button class="menu-btn" onclick="toggleMenu(event)" aria-label="Menu">&#8943;</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-v" id="sCalled">0</div><div class="stat-l">Called</div></div>
+  <div class="stat"><div class="stat-v" id="sHits">0</div><div class="stat-l">Your hits</div></div>
+  <div class="stat"><div class="stat-v" id="sPct">—</div><div class="stat-l">Hit rate</div></div>
+  <div class="stat"><div class="stat-v" id="sNeeded">5</div><div class="stat-l">Next win</div></div>
+</div>
+
+<div class="win-bars" id="winBars"></div>
+
+<div class="win-banner" id="winBanner">
+  <div class="win-banner-text">
+    <div class="win-banner-title" id="winBannerTitle"></div>
+    <div class="win-banner-body" id="winBannerBody"></div>
+  </div>
+  <button class="win-banner-dismiss" onclick="dismissBanner()" title="Dismiss">✕</button>
+</div>
+
+<div class="main">
+  <div class="card-wrap">
+    <div class="card-header"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-label">Log</div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </div>
+</div>
+
+<div class="input-row">
+  <input class="num-in" type="number" id="numIn" placeholder="1 – 75" min="1" max="75" inputmode="numeric">
+  <button class="btn btn-add" onclick="addNum()">Add</button>
+  <button class="btn btn-undo" onclick="undoLast()" title="Undo">↩</button>
+</div>
+<button class="btn btn-scan" onclick="document.getElementById('fileInput').click()">📷 Scan breakroom board — AI reads new numbers</button>
+<input type="file" id="fileInput" accept="image/*" onchange="scanPhoto(event,'board')">
+<input type="file" id="cardPhotoInput" accept="image/*" onchange="scanPhoto(event,'card')">
+<div class="scan-result" id="scanResult"></div>
+
+<!-- SCAN OVERLAY -->
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-box"><div class="spinner"></div><p id="scanMsg">AI scanning…</p></div>
+</div>
+
+<!-- NEW CARD MODAL -->
+<div class="modal-overlay" id="newCardModal">
+  <div class="modal">
+    <h2>New Bingo Card</h2>
+    <p>Enter your card numbers manually, or photograph your card and let AI read it.</p>
+    <button class="modal-scan-btn" onclick="document.getElementById('cardPhotoInput').click()">📷 Scan card photo — AI fills the grid</button>
+    <div class="modal-sep"><span>or enter manually</span></div>
+    <div class="modal-num-label">Card # (optional)</div>
+    <input class="num-in" type="text" id="newCardNum" placeholder="e.g. 127422" inputmode="numeric" style="width:100%;margin-bottom:12px;height:36px;font-size:14px;">
+    <div class="card-entry-grid" id="cardEntryGrid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeNewCard()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveNewCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET CONFIRM MODAL -->
+<div class="modal-overlay" id="resetModal" style="align-items:center;">
+  <div class="confirm-modal">
+    <h3>Reset called numbers?</h3>
+    <p>This clears all called numbers and win progress but keeps your current card.</p>
+    <div class="confirm-actions">
+      <button class="modal-btn" onclick="closeReset()">Cancel</button>
+      <button class="modal-btn danger-btn" onclick="doReset()">Yes, reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- POPUP MENU -->
+<div class="popup-overlay" id="popupOverlay" onclick="closeMenu()">
+  <div class="popup-menu" onclick="event.stopPropagation()">
+    <div class="popup-item" onclick="menuNewCard()"><span class="popup-item-icon">🃏</span> New card</div>
+    <div class="popup-item" onclick="menuRemove()"><span class="popup-item-icon">✏️</span> Remove a number</div>
+    <div class="popup-item danger" onclick="menuReset()"><span class="popup-item-icon">↺</span> Reset all numbers</div>
+  </div>
+</div>
+
+<!-- REMOVE NUMBER SHEET -->
+<div class="modal-overlay" id="removeModal">
+  <div class="remove-sheet">
+    <h3>Remove a number</h3>
+    <p>Tap a number to remove it from the log.</p>
+    <div class="remove-chips" id="removeChips"></div>
+    <div class="modal-actions">
+      <button class="modal-btn primary" onclick="closeRemove()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Default card from photo
+const DEFAULT_CARD = [
+  [14,30,44,56,73],
+  [15,24,41,59,75],
+  [6,27,0,57,61],
+  [2,20,31,47,72],
+  [5,21,42,48,66]
+];
+const DEFAULT_CARD_NUM = '127421';
+
+// Load state
+let CARD = JSON.parse(localStorage.getItem('hiBingo_card') || JSON.stringify(DEFAULT_CARD));
+let cardNum = localStorage.getItem('hiBingo_cardNum') || DEFAULT_CARD_NUM;
+let order = JSON.parse(localStorage.getItem('hiBingo_order') || '[]');
+let called = new Set(order);
+let wonSet = new Set(JSON.parse(localStorage.getItem('hiBingo_won') || '[]'));
+
+function save() {
+  localStorage.setItem('hiBingo_card', JSON.stringify(CARD));
+  localStorage.setItem('hiBingo_cardNum', cardNum);
+  localStorage.setItem('hiBingo_order', JSON.stringify(order));
+  localStorage.setItem('hiBingo_won', JSON.stringify([...wonSet]));
+}
+
+const WINS = { 'Line': getLine, 'Frame': getFrame, 'X': getX, 'Blackout': getBlackout };
+
+function getLine(c) {
+  let best = {needed:5,marked:0,cells:[]};
+  for(let r=0;r<5;r++){let m=0,cl=[];for(let col=0;col<5;col++){let v=CARD[r][col];if(v===0||c.has(v)){m++;cl.push(r*5+col);}}if(m>best.marked)best={needed:5,marked:m,cells:cl};}
+  for(let col=0;col<5;col++){let m=0,cl=[];for(let r=0;r<5;r++){let v=CARD[r][col];if(v===0||c.has(v)){m++;cl.push(r*5+col);}}if(m>best.marked)best={needed:5,marked:m,cells:cl};}
+  let d1m=0,d1c=[],d2m=0,d2c=[];
+  for(let i=0;i<5;i++){let v=CARD[i][i];if(v===0||c.has(v)){d1m++;d1c.push(i*5+i);}v=CARD[i][4-i];if(v===0||c.has(v)){d2m++;d2c.push(i*5+(4-i));}}
+  if(d1m>best.marked)best={needed:5,marked:d1m,cells:d1c};
+  if(d2m>best.marked)best={needed:5,marked:d2m,cells:d2c};
+  return best;
+}
+function getFrame(c) {
+  let m=0,cl=[];
+  for(let r=0;r<5;r++)for(let col=0;col<5;col++){if(r===0||r===4||col===0||col===4){cl.push(r*5+col);let v=CARD[r][col];if(v===0||c.has(v))m++;}}
+  return {needed:16,marked:m,cells:cl};
+}
+function getX(c) {
+  let s=new Set();
+  for(let i=0;i<5;i++){s.add(i*5+i);s.add(i*5+(4-i));}
+  let cl=[...s],m=0;
+  for(let idx of cl){let r=Math.floor(idx/5),col=idx%5,v=CARD[r][col];if(v===0||c.has(v))m++;}
+  return {needed:9,marked:m,cells:cl};
+}
+function getBlackout(c) {
+  let m=0,cl=[];
+  for(let r=0;r<5;r++)for(let col=0;col<5;col++){cl.push(r*5+col);let v=CARD[r][col];if(v===0||c.has(v))m++;}
+  return {needed:25,marked:m,cells:cl};
+}
+
+function cardNums() {
+  let s=new Set();
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++)if(CARD[r][c]!==0)s.add(CARD[r][c]);
+  return s;
+}
+
+function render() {
+  const cn = cardNums();
+  let winCells = new Set();
+  for(const fn of Object.values(WINS)){const r=fn(called);if(r.marked>=r.needed)r.cells.forEach(x=>winCells.add(x));}
+
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = '';
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){
+    const v=CARD[r][c],idx=r*5+c;
+    const div=document.createElement('div');
+    div.className='cell';
+    if(v===0){
+      div.classList.add('free','called');
+      div.innerHTML='FREE<br><span style="font-size:8px;opacity:0.6">42810</span>';
+    } else {
+      div.textContent=v;
+      if(called.has(v)){div.classList.add('called');if(winCells.has(idx))div.classList.add('win-lit');}
+      div.onclick=()=>toggleCell(v);
+    }
+    grid.appendChild(div);
+  }
+
+  let hits=0;
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++)if(CARD[r][c]!==0&&called.has(CARD[r][c]))hits++;
+  document.getElementById('sCalled').textContent=called.size;
+  document.getElementById('sHits').textContent=hits;
+  document.getElementById('sPct').textContent=called.size>0?Math.round((hits/called.size)*100)+'%':'—';
+  let minNeeded=99;
+  for(const fn of Object.values(WINS)){const r=fn(called);const left=r.needed-r.marked;if(left<minNeeded&&left>0)minNeeded=left;}
+  document.getElementById('sNeeded').textContent=minNeeded===99?0:minNeeded;
+
+  document.getElementById('cardNumDisplay').textContent='Card #'+cardNum;
+
+  const wb=document.getElementById('winBars');
+  wb.innerHTML='';
+  for(const [name,fn] of Object.entries(WINS)){
+    const r=fn(called),pct=Math.min(100,Math.round((r.marked/r.needed)*100)),done=r.marked>=r.needed;
+    const d=document.createElement('div');
+    d.className='win-bar'+(done?' done':'');
+    if(done) d.onclick=()=>showWinBanner([name]);
+    d.innerHTML=`<div class="win-bar-name">${done?'✓ ':''}${name}</div><div class="win-bar-track"><div class="win-bar-fill" style="width:${pct}%"></div></div><div class="win-bar-pct">${r.marked}/${r.needed}</div>`;
+    wb.appendChild(d);
+  }
+
+  const sl=document.getElementById('sidebarList');
+  sl.innerHTML='';
+  const shown=[...order].reverse().slice(0,22);
+  for(const n of shown){const d=document.createElement('div');d.className='sb-num'+(cn.has(n)?' hit':'');d.textContent=n;sl.appendChild(d);}
+
+  checkWins();
+  save();
+}
+
+function checkWins() {
+  let newWins=[];
+  for(const [name,fn] of Object.entries(WINS)){const r=fn(called);if(r.marked>=r.needed&&!wonSet.has(name)){wonSet.add(name);newWins.push(name);}}
+  if(newWins.length){
+    // Show banner for new wins, but it's dismissible — game continues
+    showWinBanner(newWins);
+    toast('🎉 '+newWins.join(' + ')+'! See Melisa — keep playing!');
+  }
+}
+
+function showWinBanner(wins) {
+  const banner=document.getElementById('winBanner');
+  const all=wins||[...wonSet];
+  if(!all.length) return;
+  banner.classList.add('show');
+  document.getElementById('winBannerTitle').textContent='🎉 '+all.join(' · ')+'!';
+  document.getElementById('winBannerBody').textContent='See Melisa Miller in HR — then keep playing!';
+}
+
+function dismissBanner() {
+  document.getElementById('winBanner').classList.remove('show');
+}
+
+function addNum() {
+  const inp=document.getElementById('numIn'),n=parseInt(inp.value);
+  if(isNaN(n)||n<1||n>75){toast('Enter a number 1–75');return;}
+  if(called.has(n)){toast(n+' already called');inp.value='';return;}
+  called.add(n);order.push(n);inp.value='';render();inp.focus();
+}
+
+function toggleCell(v) {
+  if(called.has(v)){called.delete(v);order=order.filter(x=>x!==v);}
+  else{called.add(v);order.push(v);}
+  render();
+}
+
+function undoLast() {
+  if(!order.length){toast('Nothing to undo');return;}
+  const last=order.pop();called.delete(last);render();toast('Removed '+last);
+}
+
+document.getElementById('numIn').addEventListener('keydown',e=>{if(e.key==='Enter')addNum();});
+document.getElementById('gameDate').textContent=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+// ---- POPUP MENU ----
+function toggleMenu(e) {
+  e.stopPropagation();
+  const ov = document.getElementById('popupOverlay');
+  ov.classList.toggle('show');
+}
+function closeMenu() { document.getElementById('popupOverlay').classList.remove('show'); }
+
+function menuNewCard()  { closeMenu(); openNewCard(); }
+function menuReset()    { closeMenu(); openReset(); }
+function menuRemove()   { closeMenu(); openRemove(); }
+
+// ---- REMOVE NUMBER ----
+function openRemove() {
+  buildChips();
+  document.getElementById('removeModal').classList.add('show');
+}
+function closeRemove() { document.getElementById('removeModal').classList.remove('show'); }
+
+function buildChips() {
+  const cn = cardNums();
+  const wrap = document.getElementById('removeChips');
+  wrap.innerHTML = '';
+  if (!order.length) {
+    const e = document.createElement('span');
+    e.className = 'chip-empty';
+    e.textContent = 'No numbers logged yet.';
+    wrap.appendChild(e);
+    return;
+  }
+  // Show in call order, newest first
+  [...order].reverse().forEach(n => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (cn.has(n) ? ' on-card' : '');
+    c.textContent = n;
+    c.onclick = () => removeNum(n);
+    wrap.appendChild(c);
+  });
+}
+
+function removeNum(n) {
+  called.delete(n);
+  order = order.filter(x => x !== n);
+  // If it was a won pattern, recheck — quietly clear won flags that no longer hold
+  for (const [name, fn] of Object.entries(WINS)) {
+    if (wonSet.has(name) && fn(called).marked < fn(called).needed) wonSet.delete(name);
+  }
+  // Recheck won flags properly
+  wonSet.clear();
+  for (const [name, fn] of Object.entries(WINS)) {
+    if (fn(called).marked >= fn(called).needed) wonSet.add(name);
+  }
+  if (![...wonSet].length) document.getElementById('winBanner').classList.remove('show');
+  render();
+  buildChips(); // refresh chips in place
+  toast('Removed ' + n);
+}
+
+// ---- RESET ----
+function openReset() { document.getElementById('resetModal').classList.add('show'); }
+function closeReset() { document.getElementById('resetModal').classList.remove('show'); }
+function doReset() {
+  called.clear(); order=[]; wonSet.clear();
+  document.getElementById('winBanner').classList.remove('show');
+  document.getElementById('scanResult').className='scan-result';
+  closeReset(); render(); toast('Numbers cleared — card kept');
+}
+
+// ---- NEW CARD MODAL ----
+const COL_LABELS = ['B','I','N','G','O'];
+const COL_COLORS = ['lb','li','ln','lg','lo'];
+const COL_RANGES = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+
+function openNewCard() {
+  buildEntryGrid();
+  document.getElementById('newCardNum').value='';
+  document.getElementById('newCardModal').classList.add('show');
+}
+
+function closeNewCard() {
+  document.getElementById('newCardModal').classList.remove('show');
+}
+
+function buildEntryGrid(prefill) {
+  const grid = document.getElementById('cardEntryGrid');
+  grid.innerHTML='';
+  // Column labels
+  for(let c=0;c<5;c++){
+    const l=document.createElement('div');
+    l.className='col-label '+COL_COLORS[c];
+    l.textContent=COL_LABELS[c];
+    grid.appendChild(l);
+  }
+  // 5 rows of inputs
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){
+    if(r===2&&c===2){
+      const inp=document.createElement('input');
+      inp.className='card-in free-cell';
+      inp.value='FREE';inp.disabled=true;
+      grid.appendChild(inp);
+    } else {
+      const inp=document.createElement('input');
+      inp.className='card-in';
+      inp.type='number';inp.inputMode='numeric';
+      inp.min=COL_RANGES[c][0];inp.max=COL_RANGES[c][1];
+      inp.placeholder=COL_RANGES[c][0]+'-'+COL_RANGES[c][1];
+      inp.dataset.row=r;inp.dataset.col=c;
+      if(prefill&&prefill[r][c]!==0) inp.value=prefill[r][c];
+      grid.appendChild(inp);
+    }
+  }
+}
+
+function saveNewCard() {
+  const inputs = document.querySelectorAll('#cardEntryGrid .card-in:not(.free-cell)');
+  let newCard=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+  let valid=true, allNums=new Set();
+  inputs.forEach(inp=>{
+    const r=parseInt(inp.dataset.row),c=parseInt(inp.dataset.col),v=parseInt(inp.value);
+    inp.classList.remove('err');
+    if(isNaN(v)||v<COL_RANGES[c][0]||v>COL_RANGES[c][1]){inp.classList.add('err');valid=false;return;}
+    if(allNums.has(v)){inp.classList.add('err');valid=false;return;}
+    allNums.add(v);
+    newCard[r][c]=v;
+  });
+  newCard[2][2]=0; // FREE
+  if(!valid){toast('Check highlighted cells — invalid or duplicate numbers');return;}
+  CARD=newCard;
+  cardNum=document.getElementById('newCardNum').value.trim()||'Custom';
+  called.clear();order=[];wonSet.clear();
+  document.getElementById('winBanner').classList.remove('show');
+  document.getElementById('scanResult').className='scan-result';
+  closeNewCard();render();toast('New card saved!');
+}
+
+// ---- SCAN (board numbers OR card photo) ----
+async function scanPhoto(evt, mode) {
+  const file=evt.target.files[0];if(!file)return;
+  evt.target.value='';
+  document.getElementById('scanResult').className='scan-result';
+  document.getElementById('scanMsg').textContent=mode==='card'?'AI reading your card…':'AI scanning board…';
+  document.getElementById('scanOverlay').classList.add('show');
+
+  try {
+    const b64=await toB64(file);
+    let prompt;
+    if(mode==='card'){
+      prompt=`This is a photo of a physical BINGO card. Extract all 24 numbers from the card (exclude the FREE center square). The card has 5 columns: B(1-15), I(16-30), N(31-45), G(46-60), O(61-75). Return ONLY valid JSON: {"cardNum":"the serial number printed on the card if visible or empty string","rows":[[B,I,N,G,O],[B,I,N,G,O],[B,I,0,G,O],[B,I,N,G,O],[B,I,N,G,O]]} where 0 = FREE center. No markdown, no explanation.`;
+    } else {
+      const already=order.join(', ')||'none';
+      prompt=`This image shows a BINGO number board or calendar. Extract every bingo number visible (integers 1–75). Numbers already recorded: ${already}. Return ONLY valid JSON: {"numbers":[n,n,...]} containing ONLY numbers NOT already recorded. Return {"numbers":[]} if none are new. No markdown, no explanation.`;
+    }
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},
+        {type:'text',text:prompt}
+      ]}]})
+    });
+    const data=await resp.json();
+    const raw=data.content?.map(b=>b.text||'').join('')||'';
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    document.getElementById('scanOverlay').classList.remove('show');
+
+    if(mode==='card'){
+      // Prefill the entry grid with scanned values
+      if(!parsed.rows){throw new Error('bad response');}
+      buildEntryGrid(parsed.rows);
+      if(parsed.cardNum) document.getElementById('newCardNum').value=parsed.cardNum;
+      document.getElementById('scanResult').className='scan-result ok';
+      document.getElementById('scanResult').textContent='Card scanned — review the grid and tap Save Card.';
+    } else {
+      const nums=(parsed.numbers||[]).filter(n=>Number.isInteger(n)&&n>=1&&n<=75&&!called.has(n));
+      if(nums.length===0){
+        document.getElementById('scanResult').className='scan-result err';
+        document.getElementById('scanResult').textContent='No new numbers found in image.';
+      } else {
+        for(const n of nums){called.add(n);order.push(n);}
+        render();
+        document.getElementById('scanResult').className='scan-result ok';
+        document.getElementById('scanResult').textContent=`Added ${nums.length} new: ${nums.join(', ')}`;
+        toast(`Scanned: +${nums.length} numbers`);
+      }
+    }
+  } catch(e){
+    document.getElementById('scanOverlay').classList.remove('show');
+    document.getElementById('scanResult').className='scan-result err';
+    document.getElementById('scanResult').textContent='Scan failed — try again or enter manually.';
+  }
+}
+
+function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('fail'));r.readAsDataURL(file);});}
+
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
+
+render();
+</script>
+</body>
+</html>
