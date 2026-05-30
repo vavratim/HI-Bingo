@@ -164,6 +164,49 @@ body { display: flex; flex-direction: column; height: 100dvh; padding-top: max(v
 .confirm-modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5; }
 .confirm-actions { display: flex; gap: 8px; }
 </style>
+<script>
+(function(){
+  var c=document.createElement('canvas');
+  c.width=180;c.height=180;
+  var ctx=c.getContext('2d');
+  // Background
+  ctx.fillStyle='#0d1b2a';
+  ctx.beginPath();
+  ctx.roundRect(0,0,180,180,36);
+  ctx.fill();
+  // Gold circle
+  ctx.fillStyle='#f0a500';
+  ctx.beginPath();
+  ctx.arc(90,82,62,0,Math.PI*2);
+  ctx.fill();
+  // Dark inner circle
+  ctx.fillStyle='#0d1b2a';
+  ctx.beginPath();
+  ctx.arc(90,82,48,0,Math.PI*2);
+  ctx.fill();
+  // Gold B
+  ctx.fillStyle='#f0a500';
+  ctx.font='bold 72px serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('B',90,86);
+  // BINGO text below
+  ctx.fillStyle='#f0a500';
+  ctx.font='bold 18px sans-serif';
+  ctx.letterSpacing='3px';
+  ctx.fillText('BINGO',90,158);
+  // Add as apple touch icon
+  var link=document.createElement('link');
+  link.rel='apple-touch-icon';
+  link.href=c.toDataURL('image/png');
+  document.head.appendChild(link);
+  // Also set favicon
+  var fav=document.createElement('link');
+  fav.rel='icon';
+  fav.href=c.toDataURL('image/png');
+  document.head.appendChild(fav);
+})();
+</script>
 </head>
 <body>
 
